@@ -5,7 +5,10 @@ To hunt for malicious/suspicious strings in BMC files.
 The Script Made especially as a PoC for BSIDES TLV 2021, The Script is a joined effort of Nir Saias, Yossi Sassi and Rotem Lipowitch.
 
 .DESCRIPTION
-We relaying on third-party 
+We relay on third-party,
+https://github.com/ANSSI-FR/bmc-tools -> Compiled to Tools folder.
+https://github.com/UB-Mannheim/tesseract -> Installation file in Tools folder.
+
 
 .PARAMETER ComputerList
 List of computers separated using newline.
