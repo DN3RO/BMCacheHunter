@@ -25,7 +25,7 @@ PS > .\BMCacheHunter.ps1
 PS > .\BMCacheHunter.ps1 -ComputerList .\Computer_list.txt -IOCList .\IOC.txt
 
 # Licensing
-
+License and term of use can be found here [LICENSE](.\LICENSE)
 
 # Disclaimer
 
