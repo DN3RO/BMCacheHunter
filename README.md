@@ -19,7 +19,9 @@ The tool is fully adjustable and will let you search any string you like in the 
 4. Edit Indication of Compromised in the IOC.txt
 
 # Execute
+
 PS > .\BMCacheHunter.ps1
+
 PS > .\BMCacheHunter.ps1 -ComputerList .\Computer_list.txt -IOCList .\IOC.txt
 
 # Licensing
