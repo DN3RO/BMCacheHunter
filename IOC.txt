@@ -1,0 +1,8 @@
+mimikatz, Traces of known hacking tool named Mimikatz found
+lsass.dmp, An "lsass.dmp" string indicats that somone looks for credentials stored in memory
+gentilkiwi, Traces of known hacking tool named Mimikatz found
+https://pingcastle.com, Traces of known hacking tool named Mimikatz/PingCastle found
+Benjamin DELPY, Traces of known hacking tool named Mimikatz found
+vincent.letoux@gmail.com, Traces of known hacking tool named Mimikatz/PingCastle found
+benjamin@gentilkiwi.com, Traces of known hacking tool named Mimikatz found
+Vincent LE TOUX, Traces of known hacking tool named Mimikatz/PingCastle found
