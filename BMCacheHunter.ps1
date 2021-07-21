@@ -123,9 +123,9 @@ $comp_good = @"
 <li class="d-flex justify-content-between">
 	<div class="d-flex flex-row align-items-start"><i class="fa fa-plus-square" style="color:green"></i>
 		<div class="ml-2">
-			<h6 class="mb-0">{0} - Clean</h6>
+			<h6 class="mb-0">{0} - Found Clean - For Session {1}</h6>
 			<div class="d-flex flex-row mt-1 text-black-50 date-time">
-				<div><i class="fa fa-calendar-o"></i><span class="ml-2">{1}</span></div>
+				<div><i class="fa fa-calendar-o"></i><span class="ml-2">{2}</span></div>
 			</div>
 		</div>
 	</div>
@@ -142,9 +142,9 @@ $comp_bad = @"
 
 	<div class="d-flex flex-row align-items-start"><i class="fa fa-minus-square" style="color:red"></i>
 		<div class="ml-2">
-			<h6 class="mb-0">{0} - IOC Found</h6>
+			<h6 class="mb-0">{0} - IOC Found - {1} </h6>
 			<div class="d-flex flex-row mt-1 text-black-50 date-time">
-				<div><i class="fa fa-calendar-o"></i><span class="ml-2">{1}</span></div>
+				<div><i class="fa fa-calendar-o"></i><span class="ml-2">{2}</span></div>
 			</div>
 			<table style="width:100%">
 			  <tr>
@@ -153,7 +153,7 @@ $comp_bad = @"
 				<th> IOC Found</th>
 				<th> Description </th>
 			  </tr>
-			  {2}
+			  {3}
 			</table>
 		</div>
 	</div>
@@ -189,39 +189,47 @@ function Collect-BMC
         Write-Host "*****Collects $computer*****"   
         $dest = "$($MyInvocation.PSScriptRoot)\BMC-Output\$computer"
         $null = mkdir $dest -ErrorAction SilentlyContinue
-
-        foreach($user in (Get-ChildItem "\\$computer\C$\Users" -Directory))
+        if(Test-Path "\\$computer\C$\Users")
         {
-            $Path = "\\$computer\C$\Users\$($user.Name)\AppData\Local\Microsoft\Terminal Server Client\Cache"
-            foreach($file in (Get-ChildItem $Path -ErrorAction SilentlyContinue))
+            foreach($user in (Get-ChildItem "\\$computer\C$\Users" -Directory))
             {
-                $flag = $false
-                $full_path = "$Path\$($file.Name)"
-                $dest_path = "$dest\$($user.Name)\$($file.Name)"
+                $Path = "\\$computer\C$\Users\$($user.Name)\AppData\Local\Microsoft\Terminal Server Client\Cache"
+                foreach($file in (Get-ChildItem $Path -ErrorAction SilentlyContinue))
+                {
+                    $flag = $false
+                    $full_path = "$Path\$($file.Name)"
+                    $dest_path = "$dest\$($user.Name)\$($file.Name)"
 
-                $null = mkdir "$dest\$($user.Name)" -ErrorAction SilentlyContinue
-                Copy-Item $full_path -Destination $dest_path
-                Parse-BMC -FileToParse $dest_path
+                    $null = mkdir "$dest\$($user.Name)" -ErrorAction SilentlyContinue
+                    Copy-Item $full_path -Destination $dest_path
+                
+                    Parse-BMC -FileToParse $dest_path -FileCreation (Get-ChildItem $full_path).CreationTime
+                }
             }
+        }
+        else
+        {
+            Write-Verbose "Can't connect to $computer, Skip..."
+            $null = $global:good_comp.Add("$computer|No Access")
+            $flag = $false
         }
         if($flag)
         {
-            $null = $global:good_comp.Add($computer)
+            $null = $global:good_comp.Add("$computer|No RDP Sessions found")
         }
     }
 }
 
 function Parse-BMC
 {
-    Param([string]$FileToParse)
+    Param([string]$FileToParse, [String]$FileCreation)
 
     #Write-Host "*****Parse $FileToParse*****"   
     $null = mkdir "$FileToParse-folder" -ErrorAction SilentlyContinue
-    $null = $global:ArrayFolders.Add($("$FileToParse-folder" | Out-String).Trim())
+    $null = $global:ArrayFolders.Add("$($("$FileToParse-folder" | Out-String).Trim())|$FileCreation")
 
     $P = Start-Process -WindowStyle Hidden -FilePath "$($MyInvocation.PSScriptRoot)\tools\bmc-tools.exe" -ArgumentList "-s $FileToParse -v -b -d $FileToParse-folder" -PassThru
     $P.WaitForExit()
-    #Start-ThreadJob -Name $FileToParse {Start-Process -FilePath "$($MyInvocation.PSScriptRoot)\tools\bmc-tools.exe" -ArgumentList "-s $FileToParse -v -b -d $FileToParse-folder"}
 }
 
 #Slice Wide BMP to Rectangle BMP
@@ -266,9 +274,16 @@ function ConvertTo-JPG
 
 function IOC
 {
-    param([parameter(mandatory=$true)][ValidateNotNullOrEmpty()][String]$Path,[parameter(mandatory=$true)][ValidateNotNullOrEmpty()][String]$IOCList)
+    [cmdletbinding()]
+    param(
+    [String]$Path,
+    [String]$IOCList,
+    [String]$TimeStamp
+    )
+
     $ioc_table = ""
     $counter = 0
+
     foreach($ioc in $(Get-Content $IOCList))
     {
         if (Select-String -Path $Path -Pattern $ioc.split(",")[0])
@@ -280,17 +295,19 @@ function IOC
             $ioc_table += $IOC_list -f $counter, $($Path.Split('\')[-3]), $ioc.split(",")[0], $ioc.split(",")[1]
         }
     }
+    $C_name = $($Path.Split('\')[-4])
+    $F_name = $Path.split("\")[-1].split(".")[0]
 
     if($counter)
     {
         $date = Get-Date
-        $ret = $comp_bad -f $($Path.Split('\')[-4]),$date.ToString(), $ioc_table
+        $ret = $comp_bad -f $C_name, $F_name,$TimeStamp, $ioc_table
         return $ret
     }
     else
     {
         $date = Get-Date
-        $ret = $comp_good -f $($Path.Split('\')[-4]),$date.ToString()
+        $ret = $comp_good -f $C_name, $F_name,$TimeStamp
         return $ret
     }
 
@@ -302,40 +319,50 @@ function main
     Param(
     [string]$ComputerList,[string]$IOCList
     )
-    #$IOCList = "C:\Users\Administrator\Desktop\BSIDES\IOC.txt"
+    
+    # Check If Tesseract is in Environment Variables, If not Stop the Script
+    if ((dir Env:\Path).value | Select-String tesseract) 
+    {
+        Write-Verbose "[+] Found Tesseract in Environment Path variable."
+    } 
+    else 
+    {
+        Write-Warning "[-] Please add Tesseract to the system Environment Path variable and reopen PowerShell. Quiting..."; break;
+    }
     
     [void][System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")
-
-    # 0. Collect BMC1
-    # 1. Parse BMC
+    
+    # Collect and parse .BIN files from the computers
     Collect-BMC -ComputerList $ComputerList
 
-    Write-Verbose "Array Folder: $global:ArrayFolders"
-    # 2. slice $bmp to Rectangle
+    Write-Verbose "Array Folder: $global:ArrayFolders.split('|')[0]"
+    
     $comp_html = ""
     foreach($folder in $global:ArrayFolders)
     {
+        $TimeStamp = $Folder.split('|')[1]
+        $Folder = $Folder.split('|')[0]
         Write-Verbose "Folder: $Folder"
-        $CacheFolder = $folder.split("\")[-1].split(".")[0];
+        $CacheFolder = $Folder.split("\")[-1].split(".")[0];
 
         if (Test-Path "$folder\$CacheFolder.bin_collage.bmp")
         {
             Write-Verbose "formatting collage for OCR analyze"
             $bmp = New-Object System.Drawing.Bitmap("$folder\$CacheFolder.bin_collage.bmp");
 
-            # 3. convert to jpg
+            # Convert Bitmap to JPG
             $ArrayJPG = RecSlice $bmp "$folder\$CacheFolder.bin_collage"
             foreach($JPG in $ArrayJPG)
             {
-                #4. OCR
+                # Run OCR mechanism against the JPG Collage and extract the text
                 $P = Start-Process -WindowStyle Hidden -FilePath "tesseract" -ArgumentList "$JPG $JPG.txt" -PassThru
                 $P.WaitForExit()
             }
 
             (Get-Content "$folder\*.txt").Trim() | Where-Object{$_.length -gt 0} | Set-Content "$folder\$CacheFolder.bin_collage.txt"
 
-            #5. IOC Finder
-            $ioc_ret = IOC "$folder\$CacheFolder.bin_collage.txt" $IOCList 
+            # Check if there are IOC in the extracted OCR text
+            $ioc_ret = IOC -Path "$folder\$CacheFolder.bin_collage.txt" -IOCList $IOCList -TimeStamp $TimeStamp
             $comp_html += $ioc_ret
         }
         
@@ -343,8 +370,9 @@ function main
 
     foreach($g in $global:good_comp)
     {
-        $date = Get-Date
-        $ret = $comp_good -f $g, $date.ToString()
+        $C_name = $g.split("|")[0]
+        $NA = $g.split("|")[1]
+        $ret = $comp_good -f $C_name,$NA,$null
         $comp_html += $ret
     }
 
