@@ -1,4 +1,4 @@
-# BSIDES-BMCacheHunter
+# BMCacheHunter
 
 # What is BMCacheHunter?
 BMC Cache Hunter can be used as a Threat Hunting as well as for a Digital Forensics tool. Written by Nir Saias, Yossi Sassi and Rotem Lipowitch as a PoC for BSIDES 2021 TLV.
