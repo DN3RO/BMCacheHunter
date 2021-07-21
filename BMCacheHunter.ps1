@@ -1,5 +1,15 @@
-# BMC hunter blab bla 10Root, Nir yossi
-# License: <NAAMA>
+<#
+This Script Made especially as a PoC for BSIDES TLV 2021, The Script is a joined effort of Nir Saias, Yossi Sassi and Rotem Lipowitch.
+.SYNOPSIS 
+
+.DESCRIPTION
+
+.PARAMETER ComputerList
+List of computers separated using newline.
+
+.PARAMETER IOCList
+File in a CSV format of IOC's following the next pattern - [IOC],[Description].
+#>
 
 [cmdletbinding()]
 param (
