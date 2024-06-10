@@ -1,31 +1,39 @@
 # BMCacheHunter
 
-# What is BMCacheHunter?
-BMC Cache Hunter can be used as a Threat Hunting as well as for a Digital Forensics tool. Written by Nir Saias, Yossi Sassi and Rotem Lipowitch as a PoC for BSIDES 2021 TLV (https://youtu.be/60Y07kdcIcw).
-Collecting BMC files from the domain computers.
-![image](https://user-images.githubusercontent.com/21937074/126483231-2a5f13b0-67a9-4e90-9117-cee34d4336b5.png)
+## What is BMCacheHunter?
 
-Formating the BMC to JPG collages and extract the text using an OCR mechanism (Tesseract).
-![image](https://user-images.githubusercontent.com/21937074/126483187-71eaeb4c-d7a5-41d0-85ed-0c538d894c2c.png)
+BMCacheHunter serves as both a Threat Hunting and Digital Forensics tool. Originally developed by Nir Saias, Yossi Sassi, and Rotem Lipowitch as a Proof of Concept for BSIDES 2021 TLV ([Watch the presentation](https://youtu.be/60Y07kdcIcw)), it specializes in collecting BMC files from domain computers.
 
-The tool is fully adjustable and will let you search any string you like in the RDP "history" of computers in the domain.
+![BMC Image](https://user-images.githubusercontent.com/21937074/126483231-2a5f13b0-67a9-4e90-9117-cee34d4336b5.png)
 
-# SETUP
+The process involves formatting the BMC files into JPG collages and extracting text using an OCR mechanism (Tesseract).
 
-# Installing
+![OCR Image](https://user-images.githubusercontent.com/21937074/126483187-71eaeb4c-d7a5-41d0-85ed-0c538d894c2c.png)
+
+This tool offers full customization, enabling users to search for specific strings within the RDP "history" of computers within the domain.
+
+## SETUP
+
+### Installing
 1. Install Tesseract located in the "BSIDES-BMCacheHunter\tools" folder.
-2. Add Tesseract executable to the Environment path.
-3. Populate the computers you want to examine in the Computer_List.txt file.
-4. Edit Indication of Compromised in the IOC.txt
+2. Add the Tesseract executable to the Environment path.
+3. Populate the list of computers you wish to examine in the `Computer_List.txt` file.
+4. Edit the Indication of Compromised in the `IOC.txt`.
 
-# Execute
+### Execute
 
+```powershell
 PS > .\BMCacheHunter.ps1
+```
 
+```powershell
 PS > .\BMCacheHunter.ps1 -ComputerList .\Computer_list.txt -IOCList .\IOC.txt
+```
 
-# Licensing
-License and term of use can be found here [LICENSE](LICENSE)
+## Licensing
 
-# Contact Us
-10Root Cyber Security [10root.com](https://10root.com)
+For licensing details and terms of use, refer to the [LICENSE](LICENSE) file.
+
+## Contact Us
+
+For further inquiries, visit [10Root Cyber Security](https://10root.com).
